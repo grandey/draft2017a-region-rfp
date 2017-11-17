@@ -1,0 +1,86 @@
+#+TITLE: draft2017a-region-rfp/data_management.org
+#+AUTHOR: Benjamin S. Grandey
+
+** Data management
+
+*** Converting from time-slice to time-series format
+The output history files have been saved on Newton. After gunzipping a copy of the output history files on Newton, [[https://github.com/NCAR/PyReshaper][PyReshaper]] (v1.0.1) can be used to convert to time-series format. I have =PyReshaper= installed in a separate =conda= environment:
+
+#+BEGIN_SRC
+source activate pyreshaper
+#+END_SRC
+
+**** WAIT Convert atmospheric h0 data to time-series format
+
+First, =s2make= is used to generate a specifier file for each simulation case, e.g.:
+
+#+BEGIN_SRC
+CASENAME_LIST=" \
+p16a_F_Hist_2000 p16a_F_Zero_2000 p17b_F_Hist_2000 \
+p16a_F_NoSAs_2000 p16a_F_NoCAs_2000 p16a_F_NoSAm_2000 p16a_F_NoAfME_2000 p16a_F_NoSEAs_2000 \
+p16a_F_NoEAs_2000 p16a_F_NoNAm_2000 p16a_F_NoANZ_2000 p16a_F_NoEur_2000 p16a_F_NoShip_2000 \
+p16a_F_OnlySAs_2000 p16a_F_OnlyCAs_2000 p16a_F_OnlySAm_2000 p16a_F_OnlyAfME_2000 p16a_F_OnlySEAs_2000 \
+p16a_F_OnlyEAs_2000 p16a_F_OnlyNAm_2000 p16a_F_OnlyANZ_2000 p16a_F_OnlyEur_2000 p16a_F_OnlyShip_2000 \
+"
+
+for CASENAME in $CASENAME_LIST
+do
+  IN_DIR=/somerset/grandey/data4/acrc/RUN/unzipped/$CASENAME/atm/hist
+  OUT_DIR=/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm
+  mkdir -p $OUT_DIR
+  s2smake \
+    --netcdf_format="netcdf4" \
+    --compression_level=1 \
+    --output_prefix="$OUT_DIR/$CASENAME.cam.h0." \
+    --output_suffix=".nc" \
+    -m "time" -m "time_bnds" \
+    -m "time_written" -m "date_written" \
+    -m "nsteph" -m "datesec" -m "ndcur" -m "date" \
+    -m "nscur" -m "PS" \
+    --specfile=$OUT_DIR/specfile_$CASENAME.s2s \
+    $IN_DIR/$CASENAME.cam.h0.????-??.nc
+done
+#+END_SRC
+
+Second, =s2run= is run in parallel in order to convert the data to time-series format:
+
+#+BEGIN_SRC
+for CASENAME in $CASENAME_LIST
+do
+  echo $CASENAME
+  OUT_DIR=/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm
+  mpirun -n 16 s2srun --verbosity=2 $OUT_DIR/specfile_$CASENAME.s2s
+done
+#+END_SRC
+
+*** Syncing to local machine for analysis
+Data of interest can then be pulled from Newton using rsync.
+
+**** WAIT Sync atmosphere output data of interest
+
+#+BEGIN_SRC
+CASENAME_LIST=" \
+p16a_F_Hist_2000 p16a_F_Zero_2000 p17b_F_Hist_2000 \
+p16a_F_NoSAs_2000 p16a_F_NoCAs_2000 p16a_F_NoSAm_2000 p16a_F_NoAfME_2000 p16a_F_NoSEAs_2000 \
+p16a_F_NoEAs_2000 p16a_F_NoNAm_2000 p16a_F_NoANZ_2000 p16a_F_NoEur_2000 p16a_F_NoShip_2000 \
+p16a_F_OnlySAs_2000 p16a_F_OnlyCAs_2000 p16a_F_OnlySAm_2000 p16a_F_OnlyAfME_2000 p16a_F_OnlySEAs_2000 \
+p16a_F_OnlyEAs_2000 p16a_F_OnlyNAm_2000 p16a_F_OnlyANZ_2000 p16a_F_OnlyEur_2000 p16a_F_OnlyShip_2000 \
+"
+
+VARIABLE_LIST=" \
+BURDENSO4 BURDENPOM BURDENBC \
+AEROD_v \
+FSNTOA FSNTOA_d1 FSNTOAC_d1 SWCF_d1 LWCF \
+"
+
+for CASENAME in $CASENAME_LIST
+do
+  for VARIABLE in $VARIABLE_LIST
+  do
+    rsync -av --progress -e "ssh -p $NEWTON_PORT" \
+        $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
+        $HOME/data/projects/p16a_hist_reg/output_timeseries/$VARIABLE/
+  done
+done
+#+END_SRC
+
