@@ -1,0 +1,28 @@
+ext_frc_type = 'CYCLICAL'
+
+ext_frc_specifier = 
+  'SO2    -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so2_elev.nc'
+  'bc_a1  -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_bc_elev.nc'
+  'num_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_num_a1_elev.nc'
+  'num_a2 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_num_a2_elev.nc'
+  'pom_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_oc_elev.nc'
+  'so4_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so4_a1_elev.nc'
+  'so4_a2 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so4_a2_elev.nc'
+
+srf_emis_type = 'CYCLICAL'
+
+srf_emis_specifier =
+  'DMS    -> /scratch/users/academy/smart/benjamin/00Data4Modeling/CCSM/inputdata//atm/cam/chem/trop_mozart_aero/emis/aerocom_mam3_dms_surf_2000_c090129.nc'
+  'SO2    -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so2_surf.nc'
+  'SOAG   -> /scratch/users/academy/smart/benjamin/00Data4Modeling/CCSM/inputdata//atm/cam/chem/trop_mozart_aero/emis/ar5_mam3_soag_1.5_surf_2000_c100217.nc'
+  'bc_a1  -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_bc_surf.nc'
+  'num_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_num_a1_surf.nc'
+  'num_a2 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_num_a2_surf.nc'
+  'pom_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_oc_surf.nc'
+  'so4_a1 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so4_a1_surf.nc'
+  'so4_a2 -> /scratch/users/academy/smart/benjamin/00Data4Modeling/inputdataBSG/p16a_F/p16a_F_<SCENARIO>_mam3_so4_a1_surf.nc'
+
+rad_diag_1 =
+  'A:Q:H2O', 'N:O2:O2', 'N:CO2:CO2', 'N:ozone:O3',
+  'N:N2O:N2O', 'N:CH4:CH4', 'N:CFC11:CFC11', 'N:CFC12:CFC12'
+
