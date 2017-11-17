@@ -1,0 +1,11 @@
+#+TITLE: draft2017a-region-rfp
+#+AUTHOR: Benjamin S. Grandey
+
+** Purpose
+Analyse data, produce figures, and write mansucript /"Radiative effects of anthropogenic aerosol emissions from different source regions"/.
+
+** Author
+Benjamin S. Grandey, 2017, in collaboration with Chien Wang.
+
+** Acknowledgements
+This research is supported by the National Research Foundation of Singapore under its Campus for Research Excellence and Technological Enterprise programme. The Center for Environmental Sensing and Modeling is an interdisciplinary research group of the Singapore-MIT Alliance for Research and Technology. This research is also supported by the U.S. National Science Foundation (AGS-1339264) and the U.S. Department of Energy, Office of Science (DE-FG02-94ER61937). The CESM project is supported by the National Science Foundation and the Office of Science (BER) of the U.S. Department of Energy. The computational work for this research was performed on resources of the National Supercomputing Centre, Singapore (https://www.nscc.sg).
