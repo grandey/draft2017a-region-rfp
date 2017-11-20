@@ -10,7 +10,8 @@ The output history files have been saved on Newton. After gunzipping a copy of t
 source activate pyreshaper
 #+END_SRC
 
-**** WAIT Convert atmospheric h0 data to time-series format
+**** DONE Convert atmospheric h0 data to time-series format
+CLOSED: [2017-11-20 Mon 10:45]
 
 First, =s2make= is used to generate a specifier file for each simulation case, e.g.:
 
@@ -56,7 +57,8 @@ done
 *** Syncing to local machine for analysis
 Data of interest can then be pulled from Newton using rsync.
 
-**** WAIT Sync atmosphere output data of interest
+**** DONE Sync atmosphere output data of interest
+CLOSED: [2017-11-20 Mon 14:43]
 
 #+BEGIN_SRC
 CASENAME_LIST=" \
@@ -71,6 +73,7 @@ VARIABLE_LIST=" \
 BURDENSO4 BURDENPOM BURDENBC \
 AEROD_v \
 FSNTOA FSNTOA_d1 FSNTOAC_d1 SWCF_d1 LWCF \
+TGCLDLWP TGCLDIWP \
 "
 
 for CASENAME in $CASENAME_LIST
@@ -79,7 +82,7 @@ do
   do
     rsync -av --progress -e "ssh -p $NEWTON_PORT" \
         $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
-        $HOME/data/projects/p16a_hist_reg/output_timeseries/$VARIABLE/
+        $HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/$VARIABLE/
   done
 done
 #+END_SRC
