@@ -76,16 +76,8 @@ def load_region_long_dict():
                         'CAs': 'Central Asia',
                         'NAm': 'North America',
                         'SAm': 'South America',
-                        'Globe': 'Globe'}
+                        'Globe': 'globe'}
     return region_long_dict
-
-
-#def load_region_order_list():
-#    """
-#    Load list containing regions (excluding Globe) sorted by so2 emissions.
-#    """
-#    region_order_list = ['EAs', 'NAm', 'Eur', 'AfME', 'CAs', 'SAs', 'SEAs', 'SAm', 'ANZ']
-#    return region_order_list
 
 
 def load_scenario_name_dict():
@@ -108,7 +100,7 @@ def load_variable_long_dict():
     assuming one is looking at differences between scenarios.
     """
     variable_long_dict = {'FSNTOA+LWCF': 'Net effective radiative forcing',
-                          'SWCF_d1': r'$\Delta$ clean-Sky shortwave cloud radiative effect',
+                          'SWCF_d1': r'$\Delta$ clean-sky shortwave cloud radiative effect',
                           'LWCF': r'$\Delta$ longwave cloud radiative effect',
                           'FSNTOA-FSNTOA_d1': r'$\Delta$ direct radiative effect',
                           'FSNTOAC_d1': r'$\Delta$ surface albedo radiative effect',
@@ -143,7 +135,7 @@ def load_variable_units_dict():
     """
     Load dictionary containing variable units - after scale factors have been applied.
     """
-    variable_units_dict = {'FSNTOA+LWCF_d1': r'W m$^{-2}$',
+    variable_units_dict = {'FSNTOA+LWCF': r'W m$^{-2}$',
                            'SWCF_d1': r'W m$^{-2}$',
                            'LWCF': r'W m$^{-2}$',
                            'FSNTOA-FSNTOA_d1': r'W m$^{-2}$',
