@@ -226,6 +226,8 @@ def load_emissions(species='so2', surf_or_elev='both', scenario='Hist_2000', sea
             alt_deltas = xr.DataArray(alt_deltas, coords={'altitude': ds['altitude'].values},
                                       dims=['altitude', ])  # set coordinates to altitude
             ds = (ds * alt_deltas).sum(dim='altitude').drop('altitude_int')
+        else:
+            raise ValueError
         # Add time coord; use 2000 as year
         ds['time'] = pd.date_range('2000-01-01', '2000-12-31', freq='MS') + pd.Timedelta('14 days')
         # Calculate annual/seasonal mean, using arithmetic mean across months
@@ -245,7 +247,7 @@ def load_emissions(species='so2', surf_or_elev='both', scenario='Hist_2000', sea
     return data
 
 
-def load_output(variable, scenario='p16a_F_Hist_2000', season='annual'):
+def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf=True):
     """
     Load annual/seasonal data for a specific variable and scenario.
 
@@ -253,6 +255,7 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual'):
         variable: string of variable name to load (e.g. 'SWCF_d1')
         scenario: string scenario name (default 'p16a_F_Hist_2000')
         season: 'annual' (default) or name of season (e.g 'DJF')
+        apply_sf: apply scale factor? (default True)
 
     Returns:
         xarray DataArray
@@ -266,12 +269,16 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual'):
     if season == 'annual':
         data = ds[variable].groupby('time.year').mean(dim='time')
     else:
-        data = ds[variable].where(ds['time.season']==season,
+        data = ds[variable].where(ds['time.season'] == season,
                                   drop=True).groupby('time.year').mean(dim='time')
     # Discard first two years as spin-up
     data = data.where(data['year'] >= 1703, drop=True)
     # Limit time period to max of 60 years
     data = data.where(data['year'] <= 1762, drop=True)
+    # Apply scale factor?
+    if apply_sf:
+        try:
+            data = data * load_variable_sf_dict()[variable]
+        except KeyError:
+            pass
     return data
-
-
