@@ -1,8 +1,8 @@
-#+TITLE: draft2017a-region-rfp
+#+TITLE: Configuration and analysis for “Radiative effects of anthropogenic aerosol emissions from different source regions”
 #+AUTHOR: Benjamin S. Grandey
 
-** Purpose
-Analyse data, produce figures, and write mansucript /"Radiative effects of anthropogenic aerosol emissions from different source regions"/.
+** Introduction
+This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Radiative effects of anthropogenic aerosol emissions from different source regions” by B. S. Grandey and C. Wang (in preparation).
 
 ** Author
 Benjamin S. Grandey, 2017, in collaboration with Chien Wang.
