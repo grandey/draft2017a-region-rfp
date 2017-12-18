@@ -274,3 +274,21 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
         except KeyError:
             pass
     return data
+
+
+def load_landfrac():
+    """
+    Load land fraction (LANDFRAC).
+    LANDFRAC is invariant across time and scenarios.
+
+    Returns:
+        xarray DataArray
+    """
+    # Read data
+    in_filename = '{}/LANDFRAC/p16a_F_Hist_2000.cam.h0.LANDFRAC.nc'.format(output_dir)
+    ds = xr.open_dataset(in_filename, decode_times=False)
+    # Convert time coordinates
+    ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
+    # Collapse time dimension (by calculating mean across time)
+    data = ds['LANDFRAC'].mean(dim='time')
+    return data

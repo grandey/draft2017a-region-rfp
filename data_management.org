@@ -87,3 +87,15 @@ do
 done
 #+END_SRC
 
+**** DONE Sync land fraction data
+CLOSED: [2017-12-18 Mon 14:26]
+Only need to get land fraction for one scenario, since land fraction is invariant.
+
+#+BEGIN_SRC
+CASENAME="p16a_F_Hist_2000"
+VARIABLE="LANDFRAC"
+
+rsync -av --progress -e "ssh -p $NEWTON_PORT" \
+        $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
+        $HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/$VARIABLE/
+#+END_SRC
