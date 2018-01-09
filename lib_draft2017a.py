@@ -104,7 +104,7 @@ def load_variable_long_dict():
                           'LWCF': r'$\Delta$ longwave cloud radiative effect',
                           'FSNTOA-FSNTOA_d1': r'$\Delta$ direct radiative effect',
                           'FSNTOAC_d1': r'$\Delta$ surface albedo radiative effect',
-                          'BURDENSO4': r'$\Delta$ sulphate aerosol column burden',
+                          'BURDENSO4': r'$\Delta$ sulfate aerosol column burden',
                           'BURDENPOM': r'$\Delta$ organic carbon aerosol column burden',
                           'BURDENBC': r'$\Delta$ black carbon aerosol column burden',
                           'TGCLDIWP': r'$\Delta$ grid-box ice water path',
