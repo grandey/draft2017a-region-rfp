@@ -19,6 +19,7 @@ Author:
 """
 
 import climapy  # https://doi.org/10.5281/zenodo.1053020
+import numpy as np
 import os
 import pandas as pd
 import xarray as xr
@@ -38,7 +39,7 @@ def dependency_versions():
     Get versions of dependencies.
     """
     version_dict = {}
-    for package in [climapy, os, pd, xr]:
+    for package in [climapy, np, os, pd, xr]:
         try:
             version_dict[package.__name__] = package.__version__
         except AttributeError:
@@ -244,35 +245,49 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
     Load annual/seasonal data for a specific variable and scenario.
 
     Args:
-        variable: string of variable name to load (e.g. 'SWCF_d1')
-        scenario: string scenario name (default 'p16a_F_Hist_2000')
+        variable: string of variable name to load (e.g. 'SWCF_d1', or 'FSNTOA+LWCF')
+        scenario: string scenario (default 'p16a_F_Hist_2000')
         season: 'annual' (default) or name of season (e.g 'DJF')
         apply_sf: apply scale factor? (default True)
 
     Returns:
         xarray DataArray
     """
-    # Read data
-    in_filename = '{}/{}/{}.cam.h0.{}.nc'.format(output_dir, variable, scenario, variable)
-    ds = xr.open_dataset(in_filename, decode_times=False)
-    # Convert time coordinates
-    ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
-    # Calculate annual/seasonal mean for each year (Jan-Dec), using arithmetic mean across months
-    if season == 'annual':
-        data = ds[variable].groupby('time.year').mean(dim='time')
+    # Case 1: if '+' in variable name, call recursively
+    if '+' in variable:
+        variable1, variable2 = variable.split('+')
+        data1 = load_output(variable1, scenario=scenario, season=season, apply_sf=apply_sf)
+        data2 = load_output(variable2, scenario=scenario, season=season, apply_sf=apply_sf)
+        data = data1 + data2
+    # Case 2: if '-' in variable name, call recursively
+    elif '-' in variable:
+        variable1, variable2 = variable.split('-')
+        data1 = load_output(variable1, scenario=scenario, season=season, apply_sf=apply_sf)
+        data2 = load_output(variable2, scenario=scenario, season=season, apply_sf=apply_sf)
+        data = data1 - data2
+    # Case 3: variable name is a single variable
     else:
-        data = ds[variable].where(ds['time.season'] == season,
-                                  drop=True).groupby('time.year').mean(dim='time')
-    # Discard first two years as spin-up
-    data = data.where(data['year'] >= 1703, drop=True)
-    # Limit time period to max of 60 years
-    data = data.where(data['year'] <= 1762, drop=True)
-    # Apply scale factor?
-    if apply_sf:
-        try:
-            data = data * load_variable_sf_dict()[variable]
-        except KeyError:
-            pass
+        # Read data
+        in_filename = '{}/{}/{}.cam.h0.{}.nc'.format(output_dir, variable, scenario, variable)
+        ds = xr.open_dataset(in_filename, decode_times=False)
+        # Convert time coordinates
+        ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
+        # Annual/seasonal mean for each year (Jan-Dec), using arithmetic mean across months
+        if season == 'annual':
+            data = ds[variable].groupby('time.year').mean(dim='time')
+        else:
+            data = ds[variable].where(ds['time.season'] == season,
+                                      drop=True).groupby('time.year').mean(dim='time')
+        # Discard first two years as spin-up
+        data = data.where(data['year'] >= 1703, drop=True)
+        # Limit time period to max of 60 years
+        data = data.where(data['year'] <= 1762, drop=True)
+        # Apply scale factor?
+        if apply_sf:
+            try:
+                data = data * load_variable_sf_dict()[variable]
+            except KeyError:
+                pass
     return data
 
 
