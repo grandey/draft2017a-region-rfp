@@ -317,6 +317,9 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
     return data
 
 
+_regional_stats_dict = {}  # dictionary to hold results from load_regional_stats()
+
+
 def load_regional_stats(scenario_combination='All1-All0',
                         variable='SWCF_d1',
                         region='Globe'):
@@ -340,97 +343,103 @@ def load_regional_stats(scenario_combination='All1-All0',
             p_value: p-value for difference between scenarios (NaN if not available)
             contributing_scenarios: list of contributing scenarios (e.g. ['All1', 'All0'])
     """
-    # Initialise dictionary with input arguments and np.nan/None
-    result = {'scenario_combination': scenario_combination,
-              'variable': variable,
-              'region': region,
-              'awms': None,
-              'mean': np.nan,
-              'error': np.nan,
-              'ci99': None,
-              'p_value': np.nan,
-              'contributing_scenarios': None}
-    # Load region bounds
-    lon_bounds, lat_bounds = _region_bounds_dict[region]
-    # Case 1: scenario_combination is a single scenario
-    if scenario_combination in _inverted_scenario_name_dict:
-        result['contributing_scenarios'] = [scenario_combination, ]
-        # Load annual data
-        data = load_output(variable,
-                           scenario=_inverted_scenario_name_dict[scenario_combination],
-                           season='annual', apply_sf=True)
-        # Calculate area-weighted mean for different years
-        awms = climapy.xr_area_weighted_stat(data, stat='mean', lon_bounds=lon_bounds,
-                                             lat_bounds=lat_bounds)
-        result['awms'] = awms
-        # Mean and standard error
-        n_years = awms.values.size
-        mean = awms.values.mean()  # mean
-        error = np.std(awms.values, ddof=1) / np.sqrt(n_years)  # standard error
-        result['mean'] = mean
-        result['error'] = error
-    # Case 2: scenario_combination is a difference between two scenarios
-    elif scenario_combination.split('-')[0] in _inverted_scenario_name_dict:
-        scenario1, scenario2 = scenario_combination.split('-')
-        result['contributing_scenarios'] = [scenario1, scenario2]
-        # Call recursively to get stats for each scenario
-        stats1 = load_regional_stats(scenario_combination=scenario1,
-                                     variable=variable, region=region)
-        stats2 = load_regional_stats(scenario_combination=scenario2,
-                                     variable=variable, region=region)
-        # Combine to get difference between means and the combined error
-        mean = stats1['mean'] - stats2['mean']
-        error = np.sqrt(stats1['error']**2 + stats2['error']**2)
-        result['mean'] = mean
-        result['error'] = error
-        # p-value based on standard two-sample t-test
-        p_value = ttest_ind(stats1['awms'], stats2['awms'], equal_var=True)[1]
-        result['p_value'] = p_value
-    # Case 3: scenario_combination is ∑(Θ1-All0)
-    elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
-        theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
-                            (s[-1] == '1' and s not in ['Correct1', 'All1'])]
-        if len(theta1_scenarios) != 10:
-            raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
-        result['contributing_scenarios'] = theta1_scenarios + ['All0', ]
-        # Call recursively to get lists of means and standard errors for each Θ1-All0 combination
-        mean_list = []
-        error_list = []
-        for scenario in theta1_scenarios:
-            temp_stats = load_regional_stats(scenario_combination='{}-All0'.format(scenario),
-                                             variable=variable, region=region)
-            mean_list.append(temp_stats['mean'])
-            error_list.append(temp_stats['error'])
-        # Combine to get sum of means and the combined error
-        mean = np.sum(np.array(mean_list))
-        error = np.sqrt(np.sum(np.array(error_list)**2))
-        result['mean'] = mean
-        result['error'] = error
-    # Case 4: scenario_combination is ∑(All1-Θ0)
-    elif scenario_combination == '$\Sigma_{\Theta}$(All1-$\Theta$0)':
-        theta0_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
-                            (s[-1] == '0' and s != 'All0')]
-        if len(theta0_scenarios) != 10:
-            raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
-        result['contributing_scenarios'] = theta0_scenarios + ['All1', ]
-        # Call recursively to get lists of means and standard errors for each All1-Θ0 combination
-        mean_list = []
-        error_list = []
-        for scenario in theta0_scenarios:
-            temp_stats = load_regional_stats(scenario_combination='All1-{}'.format(scenario),
-                                             variable=variable, region=region)
-            mean_list.append(temp_stats['mean'])
-            error_list.append(temp_stats['error'])
-        # Combine to get sum of means and the combined error
-        mean = np.sum(np.array(mean_list))
-        error = np.sqrt(np.sum(np.array(error_list)**2))
-        result['mean'] = mean
-        result['error'] = error
-    else:
-        raise ValueError('scenario_combination not recognized')
-    # 99% confidence interval based on standard error
-    ci99 = (mean - 2.576 * error, mean + 2.576 * error)
-    result['ci99'] = ci99
+    # Check if regional stats have been calculated previously
+    try:
+        result = _regional_stats_dict[(scenario_combination, variable, region)]
+    except KeyError:
+        # Initialise dictionary with input arguments and np.nan/None
+        result = {'scenario_combination': scenario_combination,
+                  'variable': variable,
+                  'region': region,
+                  'awms': None,
+                  'mean': np.nan,
+                  'error': np.nan,
+                  'ci99': None,
+                  'p_value': np.nan,
+                  'contributing_scenarios': None}
+        # Load region bounds
+        lon_bounds, lat_bounds = _region_bounds_dict[region]
+        # Case 1: scenario_combination is a single scenario
+        if scenario_combination in _inverted_scenario_name_dict:
+            result['contributing_scenarios'] = [scenario_combination, ]
+            # Load annual data
+            data = load_output(variable,
+                               scenario=_inverted_scenario_name_dict[scenario_combination],
+                               season='annual', apply_sf=True)
+            # Calculate area-weighted mean for different years
+            awms = climapy.xr_area_weighted_stat(data, stat='mean', lon_bounds=lon_bounds,
+                                                 lat_bounds=lat_bounds)
+            result['awms'] = awms
+            # Mean and standard error
+            n_years = awms.values.size
+            mean = awms.values.mean()  # mean
+            error = np.std(awms.values, ddof=1) / np.sqrt(n_years)  # standard error
+            result['mean'] = mean
+            result['error'] = error
+        # Case 2: scenario_combination is a difference between two scenarios
+        elif scenario_combination.split('-')[0] in _inverted_scenario_name_dict:
+            scenario1, scenario2 = scenario_combination.split('-')
+            result['contributing_scenarios'] = [scenario1, scenario2]
+            # Call recursively to get stats for each scenario
+            stats1 = load_regional_stats(scenario_combination=scenario1,
+                                         variable=variable, region=region)
+            stats2 = load_regional_stats(scenario_combination=scenario2,
+                                         variable=variable, region=region)
+            # Combine to get difference between means and the combined error
+            mean = stats1['mean'] - stats2['mean']
+            error = np.sqrt(stats1['error']**2 + stats2['error']**2)
+            result['mean'] = mean
+            result['error'] = error
+            # p-value based on standard two-sample t-test
+            p_value = ttest_ind(stats1['awms'], stats2['awms'], equal_var=True)[1]
+            result['p_value'] = p_value
+        # Case 3: scenario_combination is ∑(Θ1-All0)
+        elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
+            theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
+                                (s[-1] == '1' and s not in ['Correct1', 'All1'])]
+            if len(theta1_scenarios) != 10:
+                raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
+            result['contributing_scenarios'] = theta1_scenarios + ['All0', ]
+            # Call recursively to get lists of means and errors for each Θ1-All0 combination
+            mean_list = []
+            error_list = []
+            for scenario in theta1_scenarios:
+                temp_stats = load_regional_stats(scenario_combination='{}-All0'.format(scenario),
+                                                 variable=variable, region=region)
+                mean_list.append(temp_stats['mean'])
+                error_list.append(temp_stats['error'])
+            # Combine to get sum of means and the combined error
+            mean = np.sum(np.array(mean_list))
+            error = np.sqrt(np.sum(np.array(error_list)**2))
+            result['mean'] = mean
+            result['error'] = error
+        # Case 4: scenario_combination is ∑(All1-Θ0)
+        elif scenario_combination == '$\Sigma_{\Theta}$(All1-$\Theta$0)':
+            theta0_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
+                                (s[-1] == '0' and s != 'All0')]
+            if len(theta0_scenarios) != 10:
+                raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
+            result['contributing_scenarios'] = theta0_scenarios + ['All1', ]
+            # Call recursively to get lists of means and errors for each All1-Θ0 combination
+            mean_list = []
+            error_list = []
+            for scenario in theta0_scenarios:
+                temp_stats = load_regional_stats(scenario_combination='All1-{}'.format(scenario),
+                                                 variable=variable, region=region)
+                mean_list.append(temp_stats['mean'])
+                error_list.append(temp_stats['error'])
+            # Combine to get sum of means and the combined error
+            mean = np.sum(np.array(mean_list))
+            error = np.sqrt(np.sum(np.array(error_list)**2))
+            result['mean'] = mean
+            result['error'] = error
+        else:
+            raise ValueError('scenario_combination not recognized')
+        # 99% confidence interval based on standard error
+        ci99 = (mean - 2.576 * error, mean + 2.576 * error)
+        result['ci99'] = ci99
+        # Save result for future reference
+        _regional_stats_dict[(scenario_combination, variable, region)] = result
     # Return result
     return result
 
