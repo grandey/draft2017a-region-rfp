@@ -65,6 +65,9 @@ def load_region_bounds_dict():
     return region_bounds_dict
 
 
+_region_bounds_dict = load_region_bounds_dict()  # for internal use
+
+
 def load_region_long_dict():
     """
     Load dictionary containing region short names (keys) and long names (values).
@@ -82,6 +85,9 @@ def load_region_long_dict():
     return region_long_dict
 
 
+_region_long_dict = load_region_long_dict()
+
+
 def load_scenario_name_dict():
     """
     Load dictionary containing scenarios and the names used to refer to the scenarios.
@@ -94,6 +100,10 @@ def load_scenario_name_dict():
             scenario_name_dict['p16a_F_No{}_2000'.format(region)] = '{}0'.format(region)
             scenario_name_dict['p16a_F_Only{}_2000'.format(region)] = '{}1'.format(region)
     return scenario_name_dict
+
+
+_scenario_name_dict = load_scenario_name_dict()
+_inverted_scenario_name_dict = {v: k for k, v in _scenario_name_dict.items()}
 
 
 def load_variable_long_dict():
@@ -115,6 +125,9 @@ def load_variable_long_dict():
     return variable_long_dict
 
 
+_variable_long_dict = load_variable_long_dict()
+
+
 def load_variable_symbol_dict():
     """
     Load dictionary containing variable symbols, for differences between scenarios.
@@ -131,6 +144,9 @@ def load_variable_symbol_dict():
                             'TGCLDLWP': r'$\Delta WP_\mathrm{liquid}$',
                             'AEROD_v': r'$\Delta AOD$'}
     return variable_symbol_dict
+
+
+_variable_symbol_dict = load_variable_symbol_dict()
 
 
 def load_variable_units_dict():
@@ -151,6 +167,9 @@ def load_variable_units_dict():
     return variable_units_dict
 
 
+_variable_units_dict = load_variable_units_dict()
+
+
 def load_variable_sf_dict():
     """
     Load dictionary containing scale-factors to apply to variables.
@@ -162,6 +181,9 @@ def load_variable_sf_dict():
                         'TGCLDLWP': 1e3,  # kg/m2 to g/m2
                         }
     return variable_sf_dict
+
+
+_variable_sf_dict = load_variable_sf_dict()
 
 
 def load_species_sf_dict():
@@ -178,6 +200,9 @@ def load_species_sf_dict():
                        'num_a2': (365*24*60*60)*(100*100)*(1/6.022e26),  # particles/m2/yr
                        'dms': (365*24*60*60)*(100*100)*(32/6.02214e23)}  # g(S)/m2/yr
     return species_sf_dict
+
+
+_species_sf_dict = load_species_sf_dict()
 
 
 def load_emissions(species='so2', surf_or_elev='both', scenario='Hist_2000', season='annual'):
@@ -230,7 +255,7 @@ def load_emissions(species='so2', surf_or_elev='both', scenario='Hist_2000', sea
         else:
             ds = ds.groupby('time.season').mean(dim='time').sel(season=season)
         # Convert to g/m2/yr
-        ds = ds * load_species_sf_dict()[species]
+        ds = ds * _species_sf_dict[species]
         # Sum across categories
         for var_name in ds.data_vars.keys():
             try:
@@ -286,7 +311,7 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
         # Apply scale factor?
         if apply_sf:
             try:
-                data = data * load_variable_sf_dict()[variable]
+                data = data * _variable_sf_dict[variable]
             except KeyError:
                 pass
     return data
@@ -296,8 +321,6 @@ def load_regional_stats(scenario_combination='All1-All0',
                         variable='SWCF_d1',
                         region='Globe'):
     """
-    WORK IN PROGRESS
-
     Load dictionary of regional statistics for a specific variable and scenario.
 
     Args:
@@ -327,17 +350,14 @@ def load_regional_stats(scenario_combination='All1-All0',
               'ci99': None,
               'p_value': np.nan,
               'contributing_scenarios': None}
-    # Load scenario name dict and invert the mapping
-    scenario_name_dict = load_scenario_name_dict()
-    inverted_scenario_name_dict = {v: k for k, v in scenario_name_dict.items()}
     # Load region bounds
-    lon_bounds, lat_bounds = load_region_bounds_dict()[region]
+    lon_bounds, lat_bounds = _region_bounds_dict[region]
     # Case 1: scenario_combination is a single scenario
-    if scenario_combination in inverted_scenario_name_dict:
+    if scenario_combination in _inverted_scenario_name_dict:
         result['contributing_scenarios'] = [scenario_combination, ]
         # Load annual data
         data = load_output(variable,
-                           scenario=inverted_scenario_name_dict[scenario_combination],
+                           scenario=_inverted_scenario_name_dict[scenario_combination],
                            season='annual', apply_sf=True)
         # Calculate area-weighted mean for different years
         awms = climapy.xr_area_weighted_stat(data, stat='mean', lon_bounds=lon_bounds,
@@ -350,7 +370,7 @@ def load_regional_stats(scenario_combination='All1-All0',
         result['mean'] = mean
         result['error'] = error
     # Case 2: scenario_combination is a difference between two scenarios
-    elif scenario_combination.split('-')[0] in inverted_scenario_name_dict:
+    elif scenario_combination.split('-')[0] in _inverted_scenario_name_dict:
         scenario1, scenario2 = scenario_combination.split('-')
         result['contributing_scenarios'] = [scenario1, scenario2]
         # Call recursively to get stats for each scenario
@@ -368,7 +388,7 @@ def load_regional_stats(scenario_combination='All1-All0',
         result['p_value'] = p_value
     # Case 3: scenario_combination is ∑(Θ1-All0)
     elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
-        theta1_scenarios = [s for s in inverted_scenario_name_dict.keys() if
+        theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                             (s[-1] == '1' and s not in ['Correct1', 'All1'])]
         if len(theta1_scenarios) != 10:
             raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
@@ -388,7 +408,7 @@ def load_regional_stats(scenario_combination='All1-All0',
         result['error'] = error
     # Case 4: scenario_combination is ∑(All1-Θ0)
     elif scenario_combination == '$\Sigma_{\Theta}$(All1-$\Theta$0)':
-        theta0_scenarios = [s for s in inverted_scenario_name_dict.keys() if
+        theta0_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                             (s[-1] == '0' and s != 'All0')]
         if len(theta0_scenarios) != 10:
             raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
