@@ -590,7 +590,7 @@ def load_2d_stats(scenario_combination='All1-All0',
             data: DataArray of annual-means for different years (if single scenario)
             mean: DataArray of annual-mean averaged across different years
             error: DataArray of combined standard errors
-            ci99: DataArray of 99% confidence intervals (based on 2.576*error)
+            ci99: tuple of DataArrays of 99% confidence intervals (based on 2.576*error)
             p_value: array of p-values for difference between scenarios
             contributing_scenarios: list of contributing scenarios (e.g. ['All1', 'All0'])
     """
@@ -614,6 +614,7 @@ def load_2d_stats(scenario_combination='All1-All0',
             data = load_output(variable,
                                scenario=_inverted_scenario_name_dict[scenario_combination],
                                season='annual', apply_sf=True)
+            data = climapy.xr_shift_lon(data, lon_min=-179.)  # shift longitudes
             result['data'] = data
             # Mean and standard error across years
             n_years = data['year'].size
@@ -622,7 +623,8 @@ def load_2d_stats(scenario_combination='All1-All0',
             result['mean'] = mean
             result['error'] = error
         # Case 2: scenario_combination is a difference between two scenarios
-        elif scenario_combination.split('-')[0] in _inverted_scenario_name_dict:
+        elif (len(scenario_combination.split('-')) == 2 and
+              scenario_combination.split('-')[0] in _inverted_scenario_name_dict):
             scenario1, scenario2 = scenario_combination.split('-')
             result['contributing_scenarios'] = [scenario1, scenario2]
             # Call recursively to get 2D stats for each scenario
@@ -674,6 +676,38 @@ def load_2d_stats(scenario_combination='All1-All0',
             # Combine to get sum of means and the combined error
             mean = sum(mean_list)
             error = np.sqrt(sum([e ** 2 for e in error_list]))
+            result['mean'] = mean
+            result['error'] = error
+        # Case 5: scenario_combination is ∑(All1-Θ0)-∑(Θ1-All0)
+        elif scenario_combination == ('$\Sigma_{\Theta}$(All1-$\Theta$0)-'
+                                      '$\Sigma_{\Theta}$($\Theta$1-All0)'):
+            scenario_combination1 = '$\Sigma_{\Theta}$(All1-$\Theta$0)'
+            scenario_combination2 = '$\Sigma_{\Theta}$($\Theta$1-All0)'
+            # Call recursively to get 2D stats for each scenario combination
+            stats1 = load_2d_stats(scenario_combination=scenario_combination1, variable=variable)
+            stats2 = load_2d_stats(scenario_combination=scenario_combination2, variable=variable)
+            # Contributing scenarios
+            result['contributing_scenarios'] = (stats1['contributing_scenarios'] +
+                                                stats2['contributing_scenarios'])
+            # Combine to get difference between means and the combined error
+            mean = stats1['mean'] - stats2['mean']
+            error = np.sqrt(stats1['error']**2 + stats2['error']**2)
+            result['mean'] = mean
+            result['error'] = error
+        # Case 6: scenario_combination is other difference between two differences
+        #     e.g. '(All1-EAs0)-(EAs1-All0)'
+        elif len(scenario_combination.split('-')) == 4:
+            scenario_combination1 = scenario_combination.split(')-(')[0].lstrip('(')
+            scenario_combination2 = scenario_combination.split(')-(')[1].rstrip(')')
+            # Call recursively to get 2D stats for each scenario combination
+            stats1 = load_2d_stats(scenario_combination=scenario_combination1, variable=variable)
+            stats2 = load_2d_stats(scenario_combination=scenario_combination2, variable=variable)
+            # Contributing scenarios
+            result['contributing_scenarios'] = (stats1['contributing_scenarios'] +
+                                                stats2['contributing_scenarios'])
+            # Combine to get difference between means and the combined error
+            mean = stats1['mean'] - stats2['mean']
+            error = np.sqrt(stats1['error'] ** 2 + stats2['error'] ** 2)
             result['mean'] = mean
             result['error'] = error
         else:
