@@ -15,7 +15,7 @@ Data requirements:
     - CESM output data in timeseries format - see data_management.org in repository.
 
 Author:
-    Benjamin S. Grandey, 2017
+    Benjamin S. Grandey, 2017-2018
 """
 
 import climapy  # https://doi.org/10.5281/zenodo.1053020
@@ -457,18 +457,21 @@ _zonal_stats_dict = {}  # dictionary to hold results from load_zonal_stats()
 
 
 def load_zonal_stats(scenario_combination='All1-All0',
-                     variable='SWCF_d1'):
+                     variable='SWCF_d1',
+                     lon_bounds=None):
     """
     Load dictionary of zonal mean statistics for a specific variable and scenario.
 
     Args:
         scenario_combination: scenario combination (default 'All1-All0')
         variable: name of variable (default 'SWCF_d1')
+        lon_bounds: tuple containing longitude bounds (default None)
 
     Returns:
         dictionary, with the following keys:
             scenario_combination: as per input arg
             variable: as per input arg
+            lon_bounds: as per input arg
             zonmeans: DataArray of zonal-mean annual-means for different years (if single scenario)
             mean: DataArray of zonal-mean annual-mean (averaged across different years)
             error: DataArray of combined standard errors
@@ -478,11 +481,12 @@ def load_zonal_stats(scenario_combination='All1-All0',
     """
     # Check if zonal stats have been calculated previously
     try:
-        result = _zonal_stats_dict[(scenario_combination, variable)]
+        result = _zonal_stats_dict[(scenario_combination, variable, lon_bounds)]
     except KeyError:
         # Initialise dictionary with input arguments and None
         result = {'scenario_combination': scenario_combination,
                   'variable': variable,
+                  'lon_bounds': lon_bounds,
                   'zonmeans': None,
                   'mean': None,
                   'error': None,
@@ -496,6 +500,10 @@ def load_zonal_stats(scenario_combination='All1-All0',
             data = load_output(variable,
                                scenario=_inverted_scenario_name_dict[scenario_combination],
                                season='annual', apply_sf=True)
+            # Limit to specific longitude bounds?
+            if lon_bounds is not None:
+                data = climapy.xr_mask_bounds(data, lon_bounds=lon_bounds, lat_bounds=None)
+                data = data.dropna(dim='lon', how='all')
             # Calculate zonal means for different years
             zonmeans = data.mean(dim='lon')
             result['zonmeans'] = zonmeans
@@ -510,8 +518,10 @@ def load_zonal_stats(scenario_combination='All1-All0',
             scenario1, scenario2 = scenario_combination.split('-')
             result['contributing_scenarios'] = [scenario1, scenario2]
             # Call recursively to get zonal stats for each scenario
-            stats1 = load_zonal_stats(scenario_combination=scenario1, variable=variable)
-            stats2 = load_zonal_stats(scenario_combination=scenario2, variable=variable)
+            stats1 = load_zonal_stats(scenario_combination=scenario1, variable=variable,
+                                      lon_bounds=lon_bounds)
+            stats2 = load_zonal_stats(scenario_combination=scenario2, variable=variable,
+                                      lon_bounds=lon_bounds)
             # Combine to get difference between means and the combined error
             mean = stats1['mean'] - stats2['mean']
             error = np.sqrt(stats1['error']**2 + stats2['error']**2)
@@ -532,7 +542,8 @@ def load_zonal_stats(scenario_combination='All1-All0',
             error_list = []
             for scenario in theta1_scenarios:
                 temp_stats = load_zonal_stats(scenario_combination='{}-All0'.format(scenario),
-                                              variable=variable)
+                                              variable=variable,
+                                              lon_bounds=lon_bounds)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
@@ -552,7 +563,8 @@ def load_zonal_stats(scenario_combination='All1-All0',
             error_list = []
             for scenario in theta0_scenarios:
                 temp_stats = load_zonal_stats(scenario_combination='All1-{}'.format(scenario),
-                                              variable=variable,)
+                                              variable=variable,
+                                              lon_bounds=lon_bounds)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
@@ -566,7 +578,7 @@ def load_zonal_stats(scenario_combination='All1-All0',
         ci99 = (mean - 2.576 * error, mean + 2.576 * error)
         result['ci99'] = ci99
         # Save result for future reference
-        _zonal_stats_dict[(scenario_combination, variable)] = result
+        _zonal_stats_dict[(scenario_combination, variable, lon_bounds)] = result
     # Return result
     return result
 
