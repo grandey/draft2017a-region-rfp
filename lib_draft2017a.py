@@ -706,20 +706,20 @@ def load_2d_stats(scenario_combination='All1-All0',
             error = np.sqrt(stats1['error']**2 + stats2['error']**2)
             result['mean'] = mean
             result['error'] = error
-        # Case 6: scenario_combination is other difference between two differences
-        #     e.g. '(All1-EAs0)-(EAs1-All0)'
-        elif len(scenario_combination.split('-')) == 4:
-            scenario_combination1 = scenario_combination.split(')-(')[0].lstrip('(')
-            scenario_combination2 = scenario_combination.split(')-(')[1].rstrip(')')
+        # Case 6: scenario_combination is mean of two differences
+        #     e.g. '((EAs1-All0)+(All1-EAs0))/2'
+        elif len(scenario_combination.split('+')) == 2 and scenario_combination[-2:] == '/2':
+            scenario_combination1, scenario_combination2 = \
+                scenario_combination[:-2].replace('(', '').replace(')', '').split('+')
             # Call recursively to get 2D stats for each scenario combination
             stats1 = load_2d_stats(scenario_combination=scenario_combination1, variable=variable)
             stats2 = load_2d_stats(scenario_combination=scenario_combination2, variable=variable)
             # Contributing scenarios
             result['contributing_scenarios'] = (stats1['contributing_scenarios'] +
                                                 stats2['contributing_scenarios'])
-            # Combine to get difference between means and the combined error
-            mean = stats1['mean'] - stats2['mean']
-            error = np.sqrt(stats1['error'] ** 2 + stats2['error'] ** 2)
+            # Combine to get means of means and the combined error
+            mean = (stats1['mean'] + stats2['mean']) / 2
+            error = (np.sqrt(stats1['error'] ** 2 + stats2['error'] ** 2)) / 2
             result['mean'] = mean
             result['error'] = error
         else:
