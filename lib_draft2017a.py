@@ -403,43 +403,55 @@ def load_regional_stats(scenario_combination='All1-All0',
             p_value = ttest_ind(stats1['awms'], stats2['awms'], equal_var=True)[1]
             result['p_value'] = p_value
         # Case 3: scenario_combination is ∑(Θ1-All0)
+        # Note: ∑(Θ1-All0) = ∑(Θ1)-10xAll0
         elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
             theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                                 (s[-1] == '1' and s not in ['Correct1', 'All1'])]
             if len(theta1_scenarios) != 10:
                 raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
             result['contributing_scenarios'] = theta1_scenarios + ['All0', ]
-            # Call recursively to get lists of means and errors for each Θ1-All0 combination
+            # Call recursively to get mean and error for All0
+            temp_stats = load_regional_stats(scenario_combination='All0',
+                                             variable=variable, region=region)
+            mean_all0 = temp_stats['mean']
+            error_all0 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ1 scenario
             mean_list = []
             error_list = []
             for scenario in theta1_scenarios:
-                temp_stats = load_regional_stats(scenario_combination='{}-All0'.format(scenario),
+                temp_stats = load_regional_stats(scenario_combination=scenario,
                                                  variable=variable, region=region)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = np.sum(np.array(mean_list))
-            error = np.sqrt(np.sum(np.array(error_list)**2))
+            mean = np.sum(np.array(mean_list)) - 10*mean_all0
+            error = np.sqrt((10*error_all0)**2 + np.sum(np.array(error_list)**2))
             result['mean'] = mean
             result['error'] = error
         # Case 4: scenario_combination is ∑(All1-Θ0)
+        # Note: ∑(All1-Θ0) = 10xAll1-∑(Θ0)
         elif scenario_combination == '$\Sigma_{\Theta}$(All1-$\Theta$0)':
             theta0_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                                 (s[-1] == '0' and s != 'All0')]
             if len(theta0_scenarios) != 10:
                 raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
             result['contributing_scenarios'] = theta0_scenarios + ['All1', ]
-            # Call recursively to get lists of means and errors for each All1-Θ0 combination
+            # Call recursively to get mean and error for All1
+            temp_stats = load_regional_stats(scenario_combination='All1',
+                                             variable=variable, region=region)
+            mean_all1 = temp_stats['mean']
+            error_all1 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ0 scenario
             mean_list = []
             error_list = []
             for scenario in theta0_scenarios:
-                temp_stats = load_regional_stats(scenario_combination='All1-{}'.format(scenario),
+                temp_stats = load_regional_stats(scenario_combination=scenario,
                                                  variable=variable, region=region)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = np.sum(np.array(mean_list))
-            error = np.sqrt(np.sum(np.array(error_list)**2))
+            mean = 10*mean_all1 - np.sum(np.array(mean_list))
+            error = np.sqrt((10*error_all1)**2 + np.sum(np.array(error_list)**2))
             result['mean'] = mean
             result['error'] = error
         else:
@@ -531,24 +543,30 @@ def load_zonal_stats(scenario_combination='All1-All0',
             p_value = ttest_ind(stats1['zonmeans'], stats2['zonmeans'], equal_var=True)[1]
             result['p_value'] = p_value
         # Case 3: scenario_combination is ∑(Θ1-All0)
+        # Note: ∑(Θ1-All0) = ∑(Θ1)-10xAll0
         elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
             theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                                 (s[-1] == '1' and s not in ['Correct1', 'All1'])]
             if len(theta1_scenarios) != 10:
                 raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
             result['contributing_scenarios'] = theta1_scenarios + ['All0', ]
-            # Call recursively to get lists of means and errors for each Θ1-All0 combination
+            # Call recursively to get mean and error for All0
+            temp_stats = load_zonal_stats(scenario_combination='All0',
+                                          variable=variable, lon_bounds=lon_bounds)
+            mean_all0 = temp_stats['mean']
+            error_all0 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ1 scenario
             mean_list = []
             error_list = []
             for scenario in theta1_scenarios:
-                temp_stats = load_zonal_stats(scenario_combination='{}-All0'.format(scenario),
+                temp_stats = load_zonal_stats(scenario_combination=scenario,
                                               variable=variable,
                                               lon_bounds=lon_bounds)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = sum(mean_list)
-            error = np.sqrt(sum([e**2 for e in error_list]))
+            mean = sum(mean_list) - 10*mean_all0
+            error = np.sqrt((10*error_all0)**2 + sum([e**2 for e in error_list]))
             result['mean'] = mean
             result['error'] = error
         # Case 4: scenario_combination is ∑(All1-Θ0)
@@ -558,18 +576,23 @@ def load_zonal_stats(scenario_combination='All1-All0',
             if len(theta0_scenarios) != 10:
                 raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
             result['contributing_scenarios'] = theta0_scenarios + ['All1', ]
-            # Call recursively to get lists of means and errors for each All1-Θ0 combination
+            # Call recursively to get mean and error for All1
+            temp_stats = load_zonal_stats(scenario_combination='All1',
+                                          variable=variable, lon_bounds=lon_bounds)
+            mean_all1 = temp_stats['mean']
+            error_all1 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ0 scenario
             mean_list = []
             error_list = []
             for scenario in theta0_scenarios:
-                temp_stats = load_zonal_stats(scenario_combination='All1-{}'.format(scenario),
+                temp_stats = load_zonal_stats(scenario_combination=scenario,
                                               variable=variable,
                                               lon_bounds=lon_bounds)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = sum(mean_list)
-            error = np.sqrt(sum([e ** 2 for e in error_list]))
+            mean = 10*mean_all1 - sum(mean_list)
+            error = np.sqrt((10*error_all1)**2 + sum([e ** 2 for e in error_list]))
             result['mean'] = mean
             result['error'] = error
         else:
@@ -651,23 +674,28 @@ def load_2d_stats(scenario_combination='All1-All0',
             p_value = ttest_ind(stats1['data'], stats2['data'], equal_var=True)[1]
             result['p_value'] = p_value
         # Case 3: scenario_combination is ∑(Θ1-All0)
+        # Note: ∑(Θ1-All0) = ∑(Θ1)-10xAll0
         elif scenario_combination == '$\Sigma_{\Theta}$($\Theta$1-All0)':
             theta1_scenarios = [s for s in _inverted_scenario_name_dict.keys() if
                                 (s[-1] == '1' and s not in ['Correct1', 'All1'])]
             if len(theta1_scenarios) != 10:
                 raise RuntimeError('theta1_scenarios = {}'.format(theta1_scenarios))
             result['contributing_scenarios'] = theta1_scenarios + ['All0', ]
-            # Call recursively to get lists of means and errors for each Θ1-All0 combination
+            # Call recursively to get mean and error for All0
+            temp_stats = load_2d_stats(scenario_combination='All0', variable=variable)
+            mean_all0 = temp_stats['mean']
+            error_all0 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ1 scenario
             mean_list = []
             error_list = []
             for scenario in theta1_scenarios:
-                temp_stats = load_2d_stats(scenario_combination='{}-All0'.format(scenario),
+                temp_stats = load_2d_stats(scenario_combination=scenario,
                                            variable=variable)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = sum(mean_list)
-            error = np.sqrt(sum([e**2 for e in error_list]))
+            mean = sum(mean_list) - 10*mean_all0
+            error = np.sqrt((10*error_all0)**2 + sum([e**2 for e in error_list]))
             result['mean'] = mean
             result['error'] = error
         # Case 4: scenario_combination is ∑(All1-Θ0)
@@ -677,17 +705,21 @@ def load_2d_stats(scenario_combination='All1-All0',
             if len(theta0_scenarios) != 10:
                 raise RuntimeError('theta0_scenarios = {}'.format(theta0_scenarios))
             result['contributing_scenarios'] = theta0_scenarios + ['All1', ]
-            # Call recursively to get lists of means and errors for each All1-Θ0 combination
+            # Call recursively to get mean and error for All1
+            temp_stats = load_2d_stats(scenario_combination='All1', variable=variable)
+            mean_all1 = temp_stats['mean']
+            error_all1 = temp_stats['error']
+            # Call recursively to get lists of means and errors for each Θ0 scenario
             mean_list = []
             error_list = []
             for scenario in theta0_scenarios:
-                temp_stats = load_2d_stats(scenario_combination='All1-{}'.format(scenario),
-                                           variable=variable,)
+                temp_stats = load_2d_stats(scenario_combination=scenario,
+                                           variable=variable)
                 mean_list.append(temp_stats['mean'])
                 error_list.append(temp_stats['error'])
             # Combine to get sum of means and the combined error
-            mean = sum(mean_list)
-            error = np.sqrt(sum([e ** 2 for e in error_list]))
+            mean = 10*mean_all1 - sum(mean_list)
+            error = np.sqrt((10*error_all1)**2 + sum([e ** 2 for e in error_list]))
             result['mean'] = mean
             result['error'] = error
         # Case 5: scenario_combination is ∑(All1-Θ0)-∑(Θ1-All0)
