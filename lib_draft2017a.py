@@ -111,17 +111,17 @@ def load_variable_long_dict():
     Load dictionary containing variable long names of CESM output variables of potential interest,
     assuming one is looking at differences between scenarios.
     """
-    variable_long_dict = {'FSNTOA+LWCF': 'Net effective radiative forcing',
-                          'SWCF_d1': r'$\Delta$ clean-sky shortwave cloud radiative effect',
-                          'LWCF': r'$\Delta$ longwave cloud radiative effect',
-                          'FSNTOA-FSNTOA_d1': r'$\Delta$ direct radiative effect',
-                          'FSNTOAC_d1': r'$\Delta$ surface albedo radiative effect',
-                          'BURDENSO4': r'$\Delta$ sulfate aerosol burden',
-                          'BURDENPOM': r'$\Delta$ organic carbon aerosol burden',
-                          'BURDENBC': r'$\Delta$ black carbon aerosol burden',
-                          'TGCLDIWP': r'$\Delta$ grid-box ice water path',
-                          'TGCLDLWP': r'$\Delta$ grid-box liquid water path',
-                          'AEROD_v': r'$\Delta$ aerosol optical depth'}
+    variable_long_dict = {'FSNTOA+LWCF': 'Net Effective Radiative Forcing',
+                          'SWCF_d1': r'$\Delta$ Clean-sky Shortwave Cloud Radiative Effect',
+                          'LWCF': r'$\Delta$ Longwave Cloud Radiative Effect',
+                          'FSNTOA-FSNTOA_d1': r'$\Delta$ Direct Radiative Effect',
+                          'FSNTOAC_d1': r'$\Delta$ Surface Albedo Radiative Effect',
+                          'BURDENSO4': r'$\Delta$ Sulfate Aerosol Burden',
+                          'BURDENPOM': r'$\Delta$ Organic Carbon Aerosol Burden',
+                          'BURDENBC': r'$\Delta$ Black Carbon Aerosol Burden',
+                          'TGCLDIWP': r'$\Delta$ Grid-box Ice Water Path',
+                          'TGCLDLWP': r'$\Delta$ Grid-box Liquid Water Path',
+                          'AEROD_v': r'$\Delta$ Aerosol Optical Depth'}
     return variable_long_dict
 
 
