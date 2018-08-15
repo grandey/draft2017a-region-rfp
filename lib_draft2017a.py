@@ -158,7 +158,7 @@ def load_variable_units_dict():
                            'LWCF': r'W m$^{-2}$',
                            'FSNTOA-FSNTOA_d1': r'W m$^{-2}$',
                            'FSNTOAC_d1': r'W m$^{-2}$',
-                           'BURDENSO4': r'mg m$^{-2}$',
+                           'BURDENSO4': r'mg(SO$_4$) m$^{-2}$',
                            'BURDENPOM': r'mg m$^{-2}$',
                            'BURDENBC': r'mg m$^{-2}$',
                            'TGCLDIWP': r'g m$^{-2}$',
