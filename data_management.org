@@ -99,3 +99,8 @@ rsync -av --progress -e "ssh -p $NEWTON_PORT" \
         $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
         $HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/$VARIABLE/
 #+END_SRC
+
+*** Uploading data to Figshare
+
+**** History of Figshare publication
+- 2018-08-16 - Uploading data, including input data tarball. Entering metadata etc. Publishing v1, https://doi.org/10.6084/m9.figshare.6972827.v1.

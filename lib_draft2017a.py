@@ -11,8 +11,11 @@ Dependencies:
     - xarray
 
 Data requirements:
-    - MAM3 emissions data - see configuration_and_input/ in repository.
-    - CESM output data in timeseries format - see data_management.org in repository.
+    - Default MAM3 DMS emissions data (aerocom_mam3_dms_surf_2000_c090129.nc)
+    - Modified MAM3 emissions data, archived at https://doi.org/10.6084/m9.figshare.6972827
+    - CESM output data in timeseries format, archived at
+      https://doi.org/10.6084/m9.figshare.6972827
+
 
 Author:
     Benjamin S. Grandey, 2017-2018
@@ -27,12 +30,15 @@ import xarray as xr
 
 
 # Directories holding data
-emissions_dir = os.path.expandvars('$HOME/data/projects/p2016a_hist_reg/input/'
-                                   'p16a_F/')  # excluding DMS
 dms_filename = os.path.expandvars('$HOME/data/inputdataCESM/trop_mozart_aero/emis/'
-                                  'aerocom_mam3_dms_surf_2000_c090129.nc')
-output_dir = os.path.expandvars('$HOME/data/drafts/draft2017a_region_rfp_data/'
-                                'output_timeseries/')
+                                  'aerocom_mam3_dms_surf_2000_c090129.nc')  # default DMS file
+emissions_dir = os.path.expandvars('$HOME/data/figshare/figshare6972827/'
+                                   'p16a_F/')  # https://doi.org/10.6084/m9.figshare.6972827
+output_dir = os.path.expandvars('$HOME/data/figshare/figshare6972827/')
+#emissions_dir = os.path.expandvars('$HOME/data/projects/p2016a_hist_reg/input/'
+#                                   'p16a_F/')  # excluding DMS
+#output_dir = os.path.expandvars('$HOME/data/drafts/draft2017a_region_rfp_data/'
+#                                'output_timeseries/')
 
 
 def dependency_versions():
@@ -301,7 +307,7 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
         # Case 3: variable name is a single variable
         else:
             # Read data
-            in_filename = '{}/{}/{}.cam.h0.{}.nc'.format(output_dir, variable, scenario, variable)
+            in_filename = '{}/{}.cam.h0.{}.nc'.format(output_dir, scenario, variable)
             ds = xr.open_dataset(in_filename, decode_times=False)
             # Convert time coordinates
             ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
@@ -774,7 +780,7 @@ def load_landfrac():
         xarray DataArray
     """
     # Read data
-    in_filename = '{}/LANDFRAC/p16a_F_Hist_2000.cam.h0.LANDFRAC.nc'.format(output_dir)
+    in_filename = '{}/p16a_F_Hist_2000.cam.h0.LANDFRAC.nc'.format(output_dir)
     ds = xr.open_dataset(in_filename, decode_times=False)
     # Convert time coordinates
     ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
