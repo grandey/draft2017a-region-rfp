@@ -2,10 +2,23 @@
 #+AUTHOR: Benjamin S. Grandey
 
 ** Introduction
-This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Background Conditions Influence the Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions” by B. S. Grandey and C. Wang (in preparation).
+This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions” by B. S. Grandey and C. Wang (in preparation).
+
+** Contents
+1. [[https://github.com/grandey/draft2017a-region-rfp/tree/master/configuration_and_input][configuration_and_input/]] contains scripts and templates for generating *input data* and *configuring* the simulations.
+2. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/data_management.org][data_management.org]] contains information about how the simulation *output data* have been *managed*.
+3. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/lib_draft2017a.py][lib_draft2017a.py]] is a Python library that *supports analysis* of the data.
+4. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/figures_draft2017a.ipynb][figures_draft2017a.py]] is a Python notebook used to produces most of the *figures*.
+5. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/emissions_bug_draft2017a.ipynb][emissions_bug_draft2017a.ipynb]] is a Python notebook used to produce *figures S13-S22*.
+
+** Model input and output data
+The model input data and the subset of the model output data analysed have been uploaded to Figshare: https://doi.org/10.6084/m9.figshare.6972827.
 
 ** Author
 Benjamin S. Grandey, 2017-2018, in collaboration with Chien Wang.
 
 ** Acknowledgements
 This research is supported by the National Research Foundation of Singapore under its Campus for Research Excellence and Technological Enterprise programme. The Center for Environmental Sensing and Modeling is an interdisciplinary research group of the Singapore-MIT Alliance for Research and Technology. This research is also supported by the U.S. National Science Foundation (AGS-1339264) and the U.S. Department of Energy, Office of Science (DE-FG02-94ER61937). The CESM project is supported by the National Science Foundation and the Office of Science (BER) of the U.S. Department of Energy. The computational work for this research was performed on resources of the National Supercomputing Centre, Singapore (https://www.nscc.sg).
+
+** Primary reference
+B. S. Grandey and C. Wang (in preparation), Background Conditions Influence the Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions.
