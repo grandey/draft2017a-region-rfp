@@ -1,6 +1,8 @@
 #+TITLE: Configuration and analysis for “Background Conditions Influence the Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions”
 #+AUTHOR: Benjamin S. Grandey
 
+[[https://zenodo.org/badge/latestdoi/114223502][https://zenodo.org/badge/114223502.svg]]
+
 ** Introduction
 This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions” by B. S. Grandey and C. Wang (in preparation).
 
