@@ -1,10 +1,10 @@
-#+TITLE: Configuration and analysis for “Background Conditions Influence the Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions”
+#+TITLE: Configuration and analysis for “Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions”
 #+AUTHOR: Benjamin S. Grandey
 
 [[https://zenodo.org/badge/latestdoi/114223502][https://zenodo.org/badge/114223502.svg]]
 
 ** Introduction
-This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions” by B. S. Grandey and C. Wang (in preparation).
+This repository contains details of the model configuration, data management, and analysis procedure for the manuscript titled “Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions” by B. S. Grandey and C. Wang (submitted). A preprint is available via http://arxiv.org/abs/1808.05778.
 
 ** Contents
 1. [[https://github.com/grandey/draft2017a-region-rfp/tree/master/configuration_and_input][configuration_and_input/]] contains scripts and templates for generating *input data* and *configuring* the simulations.
@@ -23,4 +23,4 @@ Benjamin S. Grandey, 2017-2018, in collaboration with Chien Wang.
 This research is supported by the National Research Foundation of Singapore under its Campus for Research Excellence and Technological Enterprise programme. The Center for Environmental Sensing and Modeling is an interdisciplinary research group of the Singapore-MIT Alliance for Research and Technology. This research is also supported by the U.S. National Science Foundation (AGS-1339264) and the U.S. Department of Energy, Office of Science (DE-FG02-94ER61937). The CESM project is supported by the National Science Foundation and the Office of Science (BER) of the U.S. Department of Energy. The computational work for this research was performed on resources of the National Supercomputing Centre, Singapore (https://www.nscc.sg).
 
 ** Primary reference
-B. S. Grandey and C. Wang (in preparation), Background Conditions Influence the Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions.
+B. S. Grandey and C. Wang (submitted), "Background Conditions Influence the Estimated Cloud Radiative Effects of Anthropogenic Aerosol Emissions from Different Source Regions", http://arxiv.org/abs/1808.05778.
