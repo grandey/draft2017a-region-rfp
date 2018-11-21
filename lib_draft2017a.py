@@ -14,7 +14,7 @@ Data requirements:
     - Default MAM3 DMS emissions data (aerocom_mam3_dms_surf_2000_c090129.nc)
     - Modified MAM3 emissions data, archived at https://doi.org/10.6084/m9.figshare.6972827
     - CESM output data in timeseries format, archived at
-      https://doi.org/10.6084/m9.figshare.6972827
+      https://doi.org/10.6084/m9.figshare.6972827 (TO BE UPDATED)
 
 
 Author:
@@ -34,11 +34,11 @@ dms_filename = os.path.expandvars('$HOME/data/inputdataCESM/trop_mozart_aero/emi
                                   'aerocom_mam3_dms_surf_2000_c090129.nc')  # default DMS file
 emissions_dir = os.path.expandvars('$HOME/data/figshare/figshare6972827/'
                                    'p16a_F/')  # https://doi.org/10.6084/m9.figshare.6972827
-output_dir = os.path.expandvars('$HOME/data/figshare/figshare6972827/')
+#output_dir = os.path.expandvars('$HOME/data/figshare/figshare6972827/')
 #emissions_dir = os.path.expandvars('$HOME/data/projects/p2016a_hist_reg/input/'
 #                                   'p16a_F/')  # excluding DMS
-#output_dir = os.path.expandvars('$HOME/data/drafts/draft2017a_region_rfp_data/'
-#                                'output_timeseries/')
+output_dir = os.path.expandvars('$HOME/data/drafts/draft2017a_region_rfp_data/'
+                                'output_timeseries/')
 
 
 def dependency_versions():
@@ -127,6 +127,10 @@ def load_variable_long_dict():
                           'BURDENBC': r'$\Delta$ Black Carbon Aerosol Burden',
                           'TGCLDIWP': r'$\Delta$ Grid-box Ice Water Path',
                           'TGCLDLWP': r'$\Delta$ Grid-box Liquid Water Path',
+                          'CCN3_ml24': r'$\Delta$ CCN Concentration at 0.1% Supersaturation ' +
+                                       'in Model Level 24',
+                          'CDNUMC': r'$\Delta$ Column-integrated Cloud Droplet Number ' +
+                                    'Concentration',
                           'AEROD_v': r'$\Delta$ Aerosol Optical Depth'}
     return variable_long_dict
 
@@ -148,6 +152,8 @@ def load_variable_symbol_dict():
                             'BURDENBC': r'$\Delta Burden_\mathrm{BC}$',
                             'TGCLDIWP': r'$\Delta WP_\mathrm{ice}$',
                             'TGCLDLWP': r'$\Delta WP_\mathrm{liquid}$',
+                            'CCN3_ml24': r'$\Delta CCN_\mathrm{conc,lev24}$',
+                            'CDNUMC': r'$\Delta CDNC_\mathrm{column}$',
                             'AEROD_v': r'$\Delta AOD$'}
     return variable_symbol_dict
 
@@ -169,6 +175,8 @@ def load_variable_units_dict():
                            'BURDENBC': r'mg m$^{-2}$',
                            'TGCLDIWP': r'g m$^{-2}$',
                            'TGCLDLWP': r'g m$^{-2}$',
+                           'CCN3_ml24': r'cm$^{-3}$',
+                           'CDNUMC': r'×$10^6$ cm$^{-2}$',
                            'AEROD_v': None}
     return variable_units_dict
 
@@ -185,6 +193,7 @@ def load_variable_sf_dict():
                         'BURDENBC': 1e6,  # kg/m2 to mg/m2
                         'TGCLDIWP': 1e3,  # kg/m2 to g/m2
                         'TGCLDLWP': 1e3,  # kg/m2 to g/m2
+                        'CDNUMC': 1e-10,  # /m2 to ×10^6/cm2
                         }
     return variable_sf_dict
 
@@ -307,7 +316,7 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
         # Case 3: variable name is a single variable
         else:
             # Read data
-            in_filename = '{}/{}.cam.h0.{}.nc'.format(output_dir, scenario, variable)
+            in_filename = '{}/{}/{}.cam.h0.{}.nc'.format(output_dir, variable, scenario, variable)
             ds = xr.open_dataset(in_filename, decode_times=False)
             # Convert time coordinates
             ds = climapy.cesm_time_from_bnds(ds, min_year=1701)
@@ -327,6 +336,11 @@ def load_output(variable, scenario='p16a_F_Hist_2000', season='annual', apply_sf
                     data = data * _variable_sf_dict[variable]
                 except KeyError:
                     pass
+        # Average across level dimension if it exists
+        try:
+            data = data.mean(dim='lev')
+        except ValueError:
+            pass
         # Save data for future reference
         _output_dict[(variable, scenario, season, apply_sf)] = data
     return data
@@ -601,6 +615,24 @@ def load_zonal_stats(scenario_combination='All1-All0',
             error = np.sqrt((10*error_all1)**2 + sum([e ** 2 for e in error_list]))
             result['mean'] = mean
             result['error'] = error
+        # Case 5: scenario_combination is a fraction between two scenarios
+        elif scenario_combination.split('/')[0] in _inverted_scenario_name_dict:
+            scenario1, scenario2 = scenario_combination.split('/')
+            result['contributing_scenarios'] = [scenario1, scenario2]
+            # Call recursively to get zonal stats for each scenario
+            stats1 = load_zonal_stats(scenario_combination=scenario1, variable=variable,
+                                      lon_bounds=lon_bounds)
+            stats2 = load_zonal_stats(scenario_combination=scenario2, variable=variable,
+                                      lon_bounds=lon_bounds)
+            # Combine to get fraction and combined error
+            mean = stats1['mean'] / stats2['mean']
+            error = np.abs(mean) * np.sqrt((stats1['error'] / stats1['mean']) ** 2 +
+                                           (stats2['error'] / stats2['mean']) ** 2)
+            result['mean'] = mean
+            result['error'] = error
+            # p-value based on standard two-sample t-test
+            p_value = ttest_ind(stats1['zonmeans'], stats2['zonmeans'], equal_var=True)[1]
+            result['p_value'] = p_value
         else:
             raise ValueError('scenario_combination not recognized')
         # 99% confidence interval based on standard error
