@@ -11,7 +11,8 @@ source activate pyreshaper
 #+END_SRC
 
 **** DONE Convert atmospheric h0 data to time-series format
-CLOSED: [2017-11-20 Mon 10:45]
+CLOSED: [2018-11-21 Wed 11:09]
+[Update 2018-11-19: I initially saved the time-series data to =dhobyghaut= on 2017-11-20. However, as of 2018-11-19, =dhobyghaut= is currently inaccessible, so I am re-converting these data to time-series format and saving them to =somerset=.]
 
 First, =s2make= is used to generate a specifier file for each simulation case, e.g.:
 
@@ -27,7 +28,7 @@ p16a_F_OnlyEAs_2000 p16a_F_OnlyNAm_2000 p16a_F_OnlyANZ_2000 p16a_F_OnlyEur_2000 
 for CASENAME in $CASENAME_LIST
 do
   IN_DIR=/somerset/grandey/data4/acrc/RUN/unzipped/$CASENAME/atm/hist
-  OUT_DIR=/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm
+  OUT_DIR=/somerset/grandey/data4/s2s/$CASENAME/atm
   mkdir -p $OUT_DIR
   s2smake \
     --netcdf_format="netcdf4" \
@@ -49,8 +50,40 @@ Second, =s2run= is run in parallel in order to convert the data to time-series f
 for CASENAME in $CASENAME_LIST
 do
   echo $CASENAME
-  OUT_DIR=/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm
+  OUT_DIR=/somerset/grandey/data4/s2s/$CASENAME/atm
   mpirun -n 16 s2srun --verbosity=2 $OUT_DIR/specfile_$CASENAME.s2s
+done
+#+END_SRC
+
+*** Extracting data on specific model levels
+Using CDO version 1.5.6.1 (for model level selection).
+
+**** DONE Extract CCN concentration on model level 24 (~860hPa)
+CLOSED: [2018-11-21 Wed 11:34]
+
+#+BEGIN_SRC
+CASENAME_LIST=" \
+p16a_F_Hist_2000 p16a_F_Zero_2000 p17b_F_Hist_2000 \
+p16a_F_NoSAs_2000 p16a_F_NoCAs_2000 p16a_F_NoSAm_2000 p16a_F_NoAfME_2000 p16a_F_NoSEAs_2000 \
+p16a_F_NoEAs_2000 p16a_F_NoNAm_2000 p16a_F_NoANZ_2000 p16a_F_NoEur_2000 p16a_F_NoShip_2000 \
+p16a_F_OnlySAs_2000 p16a_F_OnlyCAs_2000 p16a_F_OnlySAm_2000 p16a_F_OnlyAfME_2000 p16a_F_OnlySEAs_2000 \
+p16a_F_OnlyEAs_2000 p16a_F_OnlyNAm_2000 p16a_F_OnlyANZ_2000 p16a_F_OnlyEur_2000 p16a_F_OnlyShip_2000 \
+"
+#+END_SRC
+
+Select level using CDO:
+
+#+BEGIN_SRC
+for CASENAME in $CASENAME_LIST
+do
+  IN_DIR=/somerset/grandey/data4/s2s/$CASENAME/atm
+  OUT_DIR=$IN_DIR
+  VARIABLE=CCN3
+  LEVEL=24
+  IN_FILENAME=${IN_DIR}/${CASENAME}.cam.h0.${VARIABLE}.nc
+  OUT_FILENAME=${OUT_DIR}/${CASENAME}.cam.h0.${VARIABLE}_ml${LEVEL}.nc
+  echo "Attempting to write $OUT_FILENAME"
+  cdo -s sellevidx,${LEVEL} $IN_FILENAME $OUT_FILENAME
 done
 #+END_SRC
 
@@ -58,7 +91,8 @@ done
 Data of interest can then be pulled from Newton using rsync.
 
 **** DONE Sync atmosphere output data of interest
-CLOSED: [2017-11-20 Mon 14:43]
+CLOSED: [2018-11-21 Wed 13:24]
+[Update 2018-11-21: I initially synced many of these data on 2017-11-20. Re-syncing on 2018-11-21, after re-converting to time-series format (see above) and adding =CCN3_ml24= and =CDNUMC= to the list of variables.]
 
 #+BEGIN_SRC
 CASENAME_LIST=" \
@@ -74,6 +108,7 @@ BURDENSO4 BURDENPOM BURDENBC \
 AEROD_v \
 FSNTOA FSNTOA_d1 FSNTOAC_d1 SWCF_d1 LWCF \
 TGCLDLWP TGCLDIWP \
+CCN3_ml24 CDNUMC \
 "
 
 for CASENAME in $CASENAME_LIST
@@ -81,7 +116,7 @@ do
   for VARIABLE in $VARIABLE_LIST
   do
     rsync -av --progress -e "ssh -p $NEWTON_PORT" \
-        $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
+        $NEWTON_USER@$NEWTON_IP:/somerset/grandey/data4/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
         $HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/$VARIABLE/
   done
 done
@@ -98,6 +133,33 @@ VARIABLE="LANDFRAC"
 rsync -av --progress -e "ssh -p $NEWTON_PORT" \
         $NEWTON_USER@$NEWTON_IP:/dhobyghaut/grandey/data5/cesm/s2s/$CASENAME/atm/$CASENAME.cam.h0.$VARIABLE.nc \
         $HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/$VARIABLE/
+#+END_SRC
+
+**** DONE Rename CCN concentration variable
+CLOSED: [2018-11-21 Wed 13:24]
+
+#+BEGIN_SRC
+CASENAME_LIST=" \
+p16a_F_Hist_2000 p16a_F_Zero_2000 p17b_F_Hist_2000 \
+p16a_F_NoSAs_2000 p16a_F_NoCAs_2000 p16a_F_NoSAm_2000 p16a_F_NoAfME_2000 p16a_F_NoSEAs_2000 \
+p16a_F_NoEAs_2000 p16a_F_NoNAm_2000 p16a_F_NoANZ_2000 p16a_F_NoEur_2000 p16a_F_NoShip_2000 \
+p16a_F_OnlySAs_2000 p16a_F_OnlyCAs_2000 p16a_F_OnlySAm_2000 p16a_F_OnlyAfME_2000 p16a_F_OnlySEAs_2000 \
+p16a_F_OnlyEAs_2000 p16a_F_OnlyNAm_2000 p16a_F_OnlyANZ_2000 p16a_F_OnlyEur_2000 p16a_F_OnlyShip_2000 \
+"
+#+END_SRC
+
+Rename variable using NCO (version 4.6.6):
+
+#+BEGIN_SRC
+VARIABLE=CCN3
+LEVEL=24
+for CASENAME in $CASENAME_LIST
+do
+  IN_DIR=$HOME/data/drafts/draft2017a_region_rfp_data/output_timeseries/${VARIABLE}_ml${LEVEL}/
+  IN_FILENAME=${IN_DIR}/${CASENAME}.cam.h0.${VARIABLE}_ml${LEVEL}.nc
+  echo "Renaming variable in $IN_FILENAME"
+  ncrename -v ${VARIABLE},${VARIABLE}_ml${LEVEL} $IN_FILENAME
+done
 #+END_SRC
 
 *** Uploading data to Figshare
