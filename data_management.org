@@ -167,4 +167,5 @@ done
 **** History of Figshare publication
 - 2018-08-16 - Uploading data, including input data tarball. Entering metadata etc. Publishing v1, https://doi.org/10.6084/m9.figshare.6972827.v1.
 - 2018-08-20 - Adding arXiv URL.
+- 2018-11-28 - Uploading CCN3_ml24 and CDNUMC data to Figshare. Publishing v2, https://doi.org/10.6084/m9.figshare.6972827.v2.
 
