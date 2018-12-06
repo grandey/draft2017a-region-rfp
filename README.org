@@ -10,8 +10,8 @@ This repository contains details of the model configuration, data management, an
 1. [[https://github.com/grandey/draft2017a-region-rfp/tree/master/configuration_and_input][configuration_and_input/]] contains scripts and templates for generating *input data* and *configuring* the simulations.
 2. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/data_management.org][data_management.org]] contains information about how the simulation *output data* have been *managed*.
 3. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/lib_draft2017a.py][lib_draft2017a.py]] is a Python library that *supports analysis* of the data.
-4. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/figures_draft2017a.ipynb][figures_draft2017a.py]] is a Python notebook used to produces most of the *figures*.
-5. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/emissions_bug_draft2017a.ipynb][emissions_bug_draft2017a.ipynb]] is a Python notebook used to produce *figures S9-S18*.
+4. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/figures_draft2017a.ipynb][figures_draft2017a.py]] is a Python notebook used to produce most of the *figures*.
+5. [[https://github.com/grandey/draft2017a-region-rfp/blob/master/emissions_bug_draft2017a.ipynb][emissions_bug_draft2017a.ipynb]] is a Python notebook used to produce *figures S12-S21*.
 
 ** Model input and output data
 The model input data and the subset of the model output data analysed have been uploaded to Figshare: https://doi.org/10.6084/m9.figshare.6972827.
